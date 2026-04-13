@@ -3,7 +3,7 @@ WIP
 Odin library to watch for changes in a directory.
 
 > [!NOTE]
-> For personal use. I will look at issues/PRs at my leisure, or not at all.
+> Primarily for personal use. I will look at issues/PRs at my leisure, or not at all.
 
 ## Platforms
 
@@ -23,6 +23,7 @@ dirwatch.watch_dir(&watch, "./my-dir", recursive = true)
 for {
 	if data, ok := chan.try_recv(watch.chan); ok {
 		log.info("Event received:", data)
+    // e.g. Msg{target = "File", event = Ev_Modified{path = "test.txt"}}
 	}
 }
 ```

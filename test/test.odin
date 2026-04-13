@@ -2,7 +2,7 @@ package main
 
 import dirwatch ".."
 import "core:log"
-import "core:os/os2"
+import "core:os"
 import "core:sync/chan"
 import "core:testing"
 import "core:time"
@@ -107,24 +107,24 @@ receive_and_compare :: proc(
 }
 
 rm_dir :: proc(t: ^testing.T, dir: string) {
-	err := os2.remove_all(dir)
+	err := os.remove_all(dir)
 	testing.expect_value(t, err, nil)
 }
 
 make_dir :: proc(t: ^testing.T, dir: string) {
-	err := os2.make_directory(dir)
+	err := os.make_directory(dir)
 	testing.expect_value(t, err, nil)
 }
 cud_file :: proc(t: ^testing.T, path: string) {
-	f, err := os2.create(path)
+	f, err := os.create(path)
 	testing.expect_value(t, err, nil)
-	_, err = os2.write_string(f, "foo")
+	_, err = os.write_string(f, "foo")
 	testing.expect_value(t, err, nil)
-	err = os2.flush(f)
+	err = os.flush(f)
 	testing.expect_value(t, err, nil)
-	err = os2.close(f)
+	err = os.close(f)
 	testing.expect_value(t, err, nil)
-	err = os2.remove(path)
+	err = os.remove(path)
 	testing.expect_value(t, err, nil)
 }
 

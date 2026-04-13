@@ -83,9 +83,9 @@ watch_dir :: proc(
 	}
 
 
-	abs_path, ok := filepath.abs(path)
-	if !ok {
-		log.error("failed to create absolute path")
+	abs_path, abs_err := filepath.abs(path, context.allocator)
+	if abs_err != nil {
+		log.error("failed to create absolute path", abs_err)
 		return
 	}
 	log.debug("Watching path:", abs_path)
@@ -117,8 +117,7 @@ watch_dir :: proc(
 	w.thread = t
 
 	log.debug("Worker starting...")
-	recv_val: bool
-	recv_val, ok = chan.recv(w.data.status_chan)
+	recv_val, ok := chan.recv(w.data.status_chan)
 	if !ok || !recv_val {
 		log.error("failed to start worker")
 		return

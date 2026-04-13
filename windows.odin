@@ -79,10 +79,9 @@ _watch_dir :: proc(state: ^Worker_State) {
 		nil,
 		.ReadDirectoryNotifyExtendedInformation,
 	) {
-		err := os.get_last_error()
-		if platform_err, ok := err.(os.Platform_Error); ok {
-			// TODO
-			log.error(platform_err)
+		err := windows.System_Error(windows.GetLastError())
+		if err != .SUCCESS {
+			log.error(err)
 		}
 		log.error("failed to read directory changes", err)
 	}
@@ -100,6 +99,27 @@ worker_setup :: proc(data: ^Worker_Data) -> (state: Worker_State, ok: bool) {
 	return state, true
 }
 
+FILE_NOTIFY_EXTENDED_INFORMATION :: struct {
+	NextEntryOffset:      windows.DWORD,
+	Action:               windows.DWORD,
+	CreationTime:         windows.LARGE_INTEGER,
+	LastModificationTime: windows.LARGE_INTEGER,
+	LastChangeTime:       windows.LARGE_INTEGER,
+	LastAccessTime:       windows.LARGE_INTEGER,
+	AllocatedLength:      windows.LARGE_INTEGER,
+	FileSize:             windows.LARGE_INTEGER,
+	FileAttributes:       windows.DWORD,
+	DUMMYUNIONNAME:       struct #raw_union {
+		ReparsePointTag: windows.DWORD,
+		EaSize:          windows.DWORD,
+	},
+	FileId:               windows.LARGE_INTEGER,
+	ParentFileId:         windows.LARGE_INTEGER,
+	FileNameLength:       windows.DWORD,
+	FileName:             [1]windows.WCHAR,
+}
+
+
 @(private)
 worker_handle_events :: proc(state: ^Worker_State) {
 	entry := state.entry
@@ -109,7 +129,7 @@ worker_handle_events :: proc(state: ^Worker_State) {
 	if windows.GetQueuedCompletionStatus(state.iocp, &bytes, &key, &complete_ov, 10) {
 		offset: windows.DWORD = 0
 		for {
-			info := cast(^windows.FILE_NOTIFY_EXTENDED_INFORMATION)&state.buf[offset]
+			info := cast(^FILE_NOTIFY_EXTENDED_INFORMATION)&state.buf[offset]
 			action := cast(File_Action)info.Action
 			if action == .None {
 				break
@@ -119,7 +139,7 @@ worker_handle_events :: proc(state: ^Worker_State) {
 			if err != nil {
 				log.error("failed to allocate file path")
 			}
-			path_norm, _ := filepath.to_slash(path)
+			path_norm, _ := filepath.replace_path_separators(path, '/', context.allocator)
 			file_path := strings.clone(path_norm)
 
 			target: Target = .File

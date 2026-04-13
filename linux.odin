@@ -4,7 +4,7 @@ package dirwatch
 import "core:c"
 import "core:container/queue"
 import "core:log"
-import "core:os/os2"
+import "core:os"
 import "core:path/filepath"
 import "core:strings"
 import "core:sys/linux"
@@ -40,9 +40,9 @@ watch_remove :: proc(state: ^Worker_State, wd: linux.Wd) {
 @(private)
 walk_dir :: proc(state: ^Worker_State, path_rel: string) {
 	watch_add(state, path_rel)
-	walker := os2.walker_create(path_rel)
-	defer os2.walker_destroy(&walker)
-	for fi in os2.walker_walk(&walker) {
+	walker := os.walker_create(path_rel)
+	defer os.walker_destroy(&walker)
+	for fi in os.walker_walk(&walker) {
 		watch_add(state, fi.fullpath)
 	}
 }
@@ -126,10 +126,10 @@ worker_handle_events :: proc(state: ^Worker_State) {
 			_push_message(&state.msg_buf, target, Ev_Created{path = strings.clone(rel_path)})
 			// TODO: walk new dir and push created messages for files
 			if .ISDIR in event.mask {
-				walker := os2.walker_create(path)
-				defer os2.walker_destroy(&walker)
+				walker := os.walker_create(path)
+				defer os.walker_destroy(&walker)
 				log.debug("Walking new dir", path)
-				for fi in os2.walker_walk(&walker) {
+				for fi in os.walker_walk(&walker) {
 					log.debug("File in created dir found", fi.fullpath)
 					// TODO: rel path
 					file_rel_path, rerr := filepath.rel(state.root_path, fi.fullpath)
