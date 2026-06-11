@@ -3,7 +3,6 @@ package dirwatch
 
 import "core:log"
 import "core:os"
-import "core:path/filepath"
 import "core:strings"
 import "core:sys/windows"
 
@@ -139,7 +138,7 @@ worker_handle_events :: proc(state: ^Worker_State) {
 			if err != nil {
 				log.error("failed to allocate file path")
 			}
-			path_norm, _ := filepath.replace_path_separators(path, '/', context.allocator)
+			path_norm, _ := os.replace_path_separators(path, '/', context.allocator)
 			file_path := strings.clone(path_norm)
 
 			target: Target = .File
