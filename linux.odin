@@ -110,7 +110,7 @@ worker_handle_events :: proc(state: ^Worker_State) {
 			int(event.len),
 			allocator = context.temp_allocator,
 		)
-		path_full := filepath.join({path, name_str}, context.temp_allocator)
+		path_full, _ := filepath.join({path, name_str}, context.temp_allocator)
 		rel_path, rerr := filepath.rel(state.root_path, path_full, context.temp_allocator)
 		if rerr != nil {
 			log.error("Not able to build relative path", state.root_path, path_full, rerr)
@@ -201,4 +201,3 @@ FD_ZERO :: proc(set: ^Fd_Set) {
 		__set.fds[__idx] = 0
 	}
 }
-
